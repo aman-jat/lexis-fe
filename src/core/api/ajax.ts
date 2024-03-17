@@ -10,11 +10,12 @@ type AjaxOptions = {
   prefix?: string
   headers?: any
   showError?: boolean
+  queryParams: { start: number; end: number }
 }
 
 const ajax = async function (
   path: string,
-  { dispatch, method = 'GET', data = null, showError = true }: AjaxOptions
+  { queryParams, dispatch, method = 'GET', data = null, showError = true }: AjaxOptions
 ): Promise<any> {
   try {
     const config = {
@@ -24,7 +25,7 @@ const ajax = async function (
         'Content-Type': 'application/json',
         Authorization: await getAuthToken()
       },
-      params: undefined,
+      params: queryParams ?? undefined,
       data: undefined,
       withCredentials: true
     }

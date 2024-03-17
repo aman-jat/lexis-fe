@@ -1,23 +1,95 @@
 import { useEffect, useState } from 'react'
 import { useAppSelector } from '../../../core/store/redux-store'
-import { Text } from '@rneui/themed'
-import { View } from 'react-native'
+import { Button, Image, ListItem, Text } from '@rneui/themed'
+import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native'
+import movie from '../../../core/api/movie'
+import { LinearProgress } from '@rneui/base'
+import { useNavigation } from '@react-navigation/native'
 
 const Home = () => {
   const [loading, setLoading] = useState(true)
-  const user = useAppSelector((state) => state.user)
-  const movies = useAppSelector((state) => state.user)
+  const movies = useAppSelector((state) => state.movies)
+
+  const fetchMovies = async (queryParams) => {
+    await movie.getMovies(queryParams)
+  }
 
   useEffect(() => {
-    if (!movies.length) {
+    if (!movies) {
+      setLoading(true)
+      fetchMovies({ start: 0, end: 10 })
     }
-  }, [movies])
+  }, [])
+
+  const navigation = useNavigation()
+
+  const renderItem = ({ item }) => (
+    <ListItem bottomDivider onPress={() => navigation.navigate('Detail', { id: item.id })}>
+      <ListItem.Content style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Image
+          source={{ uri: item.poster_path }}
+          style={{ width: 50, height: 50 }} // Adjust the width and height as needed
+        />
+        <View style={{ flex: 3 }}>
+          <ListItem.Title style={{ fontSize: 14, fontWeight: 700 }}>{item.title}</ListItem.Title>
+          <ListItem.Subtitle style={{ fontSize: 12, color: '#00000090' }}>
+            {item.genre.replace('{', '').replace('}', '').split(',').join(', ')}
+          </ListItem.Subtitle>
+          <Text style={{ color: '#000000cc' }}>({new Date(item.release_date).getFullYear()})</Text>
+        </View>
+        <View style={{ flex: 1, marginLeft: '2%', alignItems: 'center' }}>
+          <Text style={{ fontSize: 12, color: '#00000090' }}>{item.runtime} min</Text>
+        </View>
+      </ListItem.Content>
+      <ListItem.Chevron />
+    </ListItem>
+  )
+
+  const keyExtractor = (item, index) => index.toString()
+
+  const renderFooter = () => {
+    if (!loading) return null
+    return <ActivityIndicator size="large" color="#0000ff" />
+  }
+
+  const loadMore = async () => {
+    setLoading(true)
+    try {
+      await fetchMovies({ start: movies.length, end: movies.length + 10 })
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <View>
-      <Text h3>Welcome {user.name}</Text>
-      <Text h4>Movie list</Text>
+      {loading && <LinearProgress variant="indeterminate" color="blue" style={styles.loadingIndicator} />}
+      <FlatList
+        keyExtractor={keyExtractor}
+        data={movies}
+        renderItem={renderItem}
+        onEndReached={loadMore} // Call loadMore when end of list is reached
+        onEndReachedThreshold={1} // Trigger when 10% from the bottom
+        ListFooterComponent={renderFooter}
+      />
     </View>
   )
 }
 
 export default Home
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    position: 'relative'
+  },
+  loadingIndicator: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000 // Ensure it's above the FlatList
+  }
+})

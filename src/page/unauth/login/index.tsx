@@ -28,6 +28,7 @@ const Login = () => {
       }
     }
   })
+
   return (
     <View style={{ flex: 1, paddingHorizontal: 20, justifyContent: 'center' }}>
       <Input

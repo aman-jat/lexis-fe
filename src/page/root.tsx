@@ -49,7 +49,7 @@ const Root = (): React.JSX.Element => {
 
   return (
     <Stack.Navigator>
-      <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="Lexis Movies" component={Home} />
       <Stack.Screen name="Detail" component={Detail} />
     </Stack.Navigator>
   )
