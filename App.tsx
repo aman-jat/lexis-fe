@@ -5,13 +5,16 @@ import { NavigationContainer } from '@react-navigation/native'
 
 import store from './src/core/store/redux-store'
 import Root from './src/page/root'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 
 function App(): React.JSX.Element {
   return (
     <NavigationContainer>
       <Provider store={store}>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <Root />
+          <SafeAreaProvider>
+            <Root />
+          </SafeAreaProvider>
         </GestureHandlerRootView>
       </Provider>
     </NavigationContainer>
