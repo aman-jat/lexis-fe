@@ -83,6 +83,12 @@ android {
         versionName "1.0"
     }
     signingConfigs {
+        release {
+            storeFile file('lexis.keystore')
+            storePassword '123456'
+            keyAlias 'lorexam'
+            keyPassword 'lorexam'
+        }
         debug {
             storeFile file('debug.keystore')
             storePassword 'android'
