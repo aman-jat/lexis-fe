@@ -5,6 +5,7 @@ import * as yup from 'yup'
 import { auth } from '../../../core/api'
 import { Button, Input } from '@rneui/themed'
 import { useNavigation } from '@react-navigation/native'
+import showSnackbar from '../../../components/snack-message'
 
 const Register = () => {
   const [loading, setLoading] = useState(false)
@@ -22,6 +23,7 @@ const Register = () => {
       try {
         setLoading(true)
         await auth.register({ name, email, password })
+        showSnackbar(e?.[0] ?? e.message ?? 'Invalid error')
         // navigation.navigate('')
       } catch (e) {
       } finally {

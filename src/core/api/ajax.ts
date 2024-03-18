@@ -44,8 +44,12 @@ const ajax = async function (
     if (dispatch) setTimeout(() => store.dispatch({ type: `${dispatch}`, payload: resp }), 0)
     return resp
   } catch (e: any) {
-    const message = e.response?.data?.message || e.response?.data?.error || 'Unknown error'
-    console.error('e', e)
+    let message = e.response?.data?.message || e.response?.data?.error
+
+    if (JSON.stringify(e).toLowerCase().includes('network')) {
+      message = 'Internet unavailable. Please reconnect.'
+    }
+
     throw new Error(message)
   }
 }

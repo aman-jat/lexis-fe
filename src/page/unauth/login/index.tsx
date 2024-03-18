@@ -5,6 +5,8 @@ import * as yup from 'yup'
 import { auth } from '../../../core/api'
 import { Button, Input } from '@rneui/themed'
 import { useNavigation } from '@react-navigation/native'
+import Snackbar from 'react-native-snackbar'
+import showSnackbar from '../../../components/snack-message'
 
 const Login = () => {
   const [loading, setLoading] = useState(false)
@@ -12,7 +14,7 @@ const Login = () => {
   const navigation = useNavigation()
 
   const formik = useFormik({
-    initialValues: { email: '', password: '' },
+    initialValues: { email: 'aman@gmail.com', password: '1234' },
     validationSchema: yup.object().shape({
       email: yup.string().email('Invalid email format').required('Email is required'),
       password: yup.string().trim().min(4)
@@ -23,6 +25,7 @@ const Login = () => {
         await auth.login({ email, password })
         // navigation.navigate('')
       } catch (e) {
+        showSnackbar(e?.[0] ?? e.message ?? 'Invalid error')
       } finally {
         setLoading(false)
       }

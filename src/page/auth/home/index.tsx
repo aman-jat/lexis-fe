@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import store, { useAppSelector } from '../../../core/store/redux-store'
-import { Image, Input, ListItem, Text } from '@rneui/themed'
+import { Button, Image, Input, ListItem, Text } from '@rneui/themed'
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native'
 import movie from '../../../core/api/movie'
 import { LinearProgress } from '@rneui/base'
 import { useNavigation } from '@react-navigation/native'
+import showSnackbar from '../../../components/snack-message'
+
+const PAGE_SIZE = 10
 
 const Home = () => {
   const navigation = useNavigation()
@@ -14,41 +17,31 @@ const Home = () => {
   const [search, setSearch] = useState<string>('')
 
   const fetchMovies = async (queryParams) => {
-    await movie.getMovies(queryParams)
-  }
-
-  useEffect(() => {
-    if (!movies) {
-      try {
-        setLoading(true)
-        fetchMovies({ query: search, start: 0, end: 10 })
-      } catch (err) {
-      } finally {
-        setLoading(false)
-      }
-    }
-  }, [])
-
-  const loadMore = async () => {
-    setLoading(true)
     try {
-      await fetchMovies({ query: search, start: movies?.length ?? 0, end: movies?.length ?? 0 + 10 })
+      setLoading(true)
+      await movie.getMovies(queryParams)
     } catch (error) {
-      console.error('Error fetching data:', error)
+      showSnackbar(e?.[0] ?? e.message ?? 'Invalid error')
     } finally {
       setLoading(false)
     }
   }
+  useEffect(() => {
+    if (!loading) {
+      fetchMovies({ query: search, start: 0, end: PAGE_SIZE })
+    }
+  }, [])
 
   useEffect(() => {
-    setLoading(true)
     store.dispatch({ type: 'movies/clear' })
-    movie
-      .getMovies({ query: search, start: 0, end: 10 })
-      .then()
-      .catch()
-      .finally(() => setLoading(false))
+    fetchMovies({ query: search, start: 0, end: PAGE_SIZE })
   }, [search])
+
+  const loadMore = async () => {
+    if (!loading && movies && movies.length) {
+      fetchMovies({ query: search, start: movies.length, end: movies.length + PAGE_SIZE })
+    }
+  }
 
   const renderItem = ({ item }) => (
     <ListItem bottomDivider onPress={() => navigation.navigate('Detail', { id: item.id })}>
@@ -74,22 +67,32 @@ const Home = () => {
 
   const keyExtractor = (item, index) => index.toString()
 
-  const renderFooter = () => {
-    if (!loading) return null
-    return <ActivityIndicator size="large" color="#0000ff" />
-  }
-
   return (
     <View>
       <Input keyboardType="web-search" placeholder="Search" value={search} onChangeText={(e) => setSearch(e)} />
       {loading && <LinearProgress variant="indeterminate" color="blue" style={styles.loadingIndicator} />}
+      {!loading && !movies?.length && (
+        <View style={{ alignItems: 'center', paddingVertical: 50 }}>
+          <Text>0 Movies found</Text>
+        </View>
+      )}
       <FlatList
         keyExtractor={keyExtractor}
         data={movies}
         renderItem={renderItem}
-        onEndReached={loadMore} // Call loadMore when end of list is reached
-        onEndReachedThreshold={1} // Trigger when 10% from the bottom
-        ListFooterComponent={renderFooter}
+        initialNumToRender={10}
+        onEndReachedThreshold={0.1}
+        ListFooterComponent={
+          movies?.length ? (
+            <View style={{ paddingBottom: 75 }}>
+              <Button disabled={loading || !movies?.length} title="Singa" onPress={loadMore}>
+                Load More
+              </Button>
+            </View>
+          ) : (
+            <></>
+          )
+        }
       />
     </View>
   )
