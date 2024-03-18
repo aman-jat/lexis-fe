@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Text, View } from 'react-native'
+import React from 'react'
+import { StyleSheet } from 'react-native'
 import 'react-native-gesture-handler'
 import { createStackNavigator } from '@react-navigation/stack'
 
@@ -9,50 +9,53 @@ import Home from './auth/home'
 import Detail from './auth/detail'
 import { auth } from '../core/api'
 import { useAppSelector } from '../core/store/redux-store'
+import { useAsync } from 'react-use'
+import { LinearProgress } from '@rneui/base'
 
 const Stack = createStackNavigator()
 
 const Root = (): React.JSX.Element => {
-  const [loading, setLoading] = useState(true)
   const user = useAppSelector((state) => state.user)
 
-  useEffect(() => {
-    const getMe = async () => {
-      try {
-        await auth.getMe()
-      } catch (err) {
-      } finally {
-        setLoading(false)
-      }
-    }
+  const { loading, error } = useAsync(() => {
     if (!user) {
-      getMe()
+      return auth.getMe()
+    } else {
+      return Promise.reject()
     }
   }, [user])
 
-  if (loading) {
-    return (
-      <View>
-        <Text style={{ fontSize: 40 }}>Loading...</Text>
-      </View>
-    )
-  }
-
-  if (!user) {
-    return (
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Register" component={Register} />
-      </Stack.Navigator>
-    )
-  }
-
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Lexis Movies" component={Home} />
-      <Stack.Screen name="Detail" component={Detail} />
-    </Stack.Navigator>
+    <>
+      {loading && <LinearProgress variant="indeterminate" color="blue" style={styles.loadingIndicator} />}
+      {!loading && !error && user && (
+        <Stack.Navigator>
+          <Stack.Screen name="Lexis Movies" component={Home} />
+          <Stack.Screen name="Detail" component={Detail} />
+        </Stack.Navigator>
+      )}
+      {!loading && !user && (
+        <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Register" component={Register} />
+        </Stack.Navigator>
+      )}
+    </>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    position: 'relative'
+  },
+  loadingIndicator: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000 // Ensure it's above the FlatList
+  }
+})
 
 export default Root

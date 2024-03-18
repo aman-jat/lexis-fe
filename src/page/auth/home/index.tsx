@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAppSelector } from '../../../core/store/redux-store'
-import { Button, Image, ListItem, Text } from '@rneui/themed'
+import { Image, ListItem, Text } from '@rneui/themed'
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native'
 import movie from '../../../core/api/movie'
 import { LinearProgress } from '@rneui/base'
@@ -16,8 +16,12 @@ const Home = () => {
 
   useEffect(() => {
     if (!movies) {
-      setLoading(true)
-      fetchMovies({ start: 0, end: 10 })
+      try {
+        fetchMovies({ start: 0, end: 10 })
+      } catch (err) {
+      } finally {
+        setLoading(false)
+      }
     }
   }, [])
 
