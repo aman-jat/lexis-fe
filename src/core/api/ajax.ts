@@ -10,7 +10,7 @@ type AjaxOptions = {
   prefix?: string
   headers?: any
   showError?: boolean
-  queryParams: { start: number; end: number }
+  queryParams: any
 }
 
 const ajax = async function (

@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
-import { useAppSelector } from '../../../core/store/redux-store'
-import { Image, ListItem, Text } from '@rneui/themed'
+import store, { useAppSelector } from '../../../core/store/redux-store'
+import { Image, Input, ListItem, Text } from '@rneui/themed'
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native'
 import movie from '../../../core/api/movie'
 import { LinearProgress } from '@rneui/base'
 import { useNavigation } from '@react-navigation/native'
 
 const Home = () => {
-  const [loading, setLoading] = useState(true)
+  const navigation = useNavigation()
   const movies = useAppSelector((state) => state.movies)
+
+  const [loading, setLoading] = useState(false)
+  const [search, setSearch] = useState<string>('')
 
   const fetchMovies = async (queryParams) => {
     await movie.getMovies(queryParams)
@@ -17,7 +20,8 @@ const Home = () => {
   useEffect(() => {
     if (!movies) {
       try {
-        fetchMovies({ start: 0, end: 10 })
+        setLoading(true)
+        fetchMovies({ query: search, start: 0, end: 10 })
       } catch (err) {
       } finally {
         setLoading(false)
@@ -25,7 +29,26 @@ const Home = () => {
     }
   }, [])
 
-  const navigation = useNavigation()
+  const loadMore = async () => {
+    setLoading(true)
+    try {
+      await fetchMovies({ query: search, start: movies?.length ?? 0, end: movies?.length ?? 0 + 10 })
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    setLoading(true)
+    store.dispatch({ type: 'movies/clear' })
+    movie
+      .getMovies({ query: search, start: 0, end: 10 })
+      .then()
+      .catch()
+      .finally(() => setLoading(false))
+  }, [search])
 
   const renderItem = ({ item }) => (
     <ListItem bottomDivider onPress={() => navigation.navigate('Detail', { id: item.id })}>
@@ -56,19 +79,9 @@ const Home = () => {
     return <ActivityIndicator size="large" color="#0000ff" />
   }
 
-  const loadMore = async () => {
-    setLoading(true)
-    try {
-      await fetchMovies({ start: movies.length, end: movies.length + 10 })
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <View>
+      <Input keyboardType="web-search" placeholder="Search" value={search} onChangeText={(e) => setSearch(e)} />
       {loading && <LinearProgress variant="indeterminate" color="blue" style={styles.loadingIndicator} />}
       <FlatList
         keyExtractor={keyExtractor}
