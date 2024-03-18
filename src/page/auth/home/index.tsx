@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import store, { useAppSelector } from '../../../core/store/redux-store'
 import { Button, Image, Input, ListItem, Text } from '@rneui/themed'
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native'
+import { FlatList, StyleSheet, View } from 'react-native'
 import movie from '../../../core/api/movie'
 import { LinearProgress } from '@rneui/base'
 import { useNavigation } from '@react-navigation/native'
 import showSnackbar from '../../../components/snack-message'
+import { removeAuthToken } from '../../../core/store/async-store'
 
 const PAGE_SIZE = 10
 
@@ -21,7 +22,7 @@ const Home = () => {
       setLoading(true)
       await movie.getMovies(queryParams)
     } catch (error) {
-      showSnackbar(e?.[0] ?? e.message ?? 'Invalid error')
+      showSnackbar(error.message)
     } finally {
       setLoading(false)
     }
@@ -65,8 +66,13 @@ const Home = () => {
     </ListItem>
   )
 
-  const keyExtractor = (item, index) => index.toString()
+  const keyExtractor = (item) => item.id
 
+  const logout = async () => {
+    await removeAuthToken()
+    store.dispatch({ type: `user/clear` })
+    await loadMore()
+  }
   return (
     <View>
       <Input keyboardType="web-search" placeholder="Search" value={search} onChangeText={(e) => setSearch(e)} />
@@ -84,7 +90,20 @@ const Home = () => {
         onEndReachedThreshold={0.1}
         ListFooterComponent={
           movies?.length ? (
-            <View style={{ paddingBottom: 75 }}>
+            <View
+              style={{
+                paddingBottom: 75,
+                marginHorizontal: 20,
+                marginVertical: 20,
+                justifyContent: 'space-between',
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center'
+              }}
+            >
+              <Button onPress={logout} type="outline">
+                Logout
+              </Button>
               <Button disabled={loading || !movies?.length} title="Singa" onPress={loadMore}>
                 Load More
               </Button>

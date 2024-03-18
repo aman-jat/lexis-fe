@@ -23,9 +23,9 @@ const Register = () => {
       try {
         setLoading(true)
         await auth.register({ name, email, password })
-        showSnackbar(e?.[0] ?? e.message ?? 'Invalid error')
         // navigation.navigate('')
       } catch (e) {
+        showSnackbar(e.message)
       } finally {
         setLoading(false)
       }

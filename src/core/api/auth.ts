@@ -24,12 +24,12 @@ const auth = {
   },
 
   logout: async () => {
+    await removeAuthToken()
+    await ajax('auth/logout', { dispatch: 'user/clear' })
     const states = ['user', 'movies']
     states.forEach((type) => {
       store.dispatch({ type: `${type}/clear` })
     })
-    await ajax('auth/logout', { dispatch: 'user/clear' })
-    removeAuthToken()
   }
 }
 

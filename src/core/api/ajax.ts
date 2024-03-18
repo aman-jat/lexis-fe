@@ -33,7 +33,6 @@ const ajax = async function (
       if (method === 'GET') config.params = data
       else config.data = data
     }
-    console.log('config', config)
 
     let resp: any = await axios(config)
 
@@ -44,12 +43,16 @@ const ajax = async function (
     if (dispatch) setTimeout(() => store.dispatch({ type: `${dispatch}`, payload: resp }), 0)
     return resp
   } catch (e: any) {
-    let message = e.response?.data?.message || e.response?.data?.error
-
-    if (JSON.stringify(e).toLowerCase().includes('network')) {
+    let message
+    if (e.response.status === 401) {
+      message = 'Please login again.'
+      store.dispatch({ type: 'user/clear' })
+    }
+    message = e.response?.data?.message || e.response?.data?.error
+    const stringifiedError = JSON.stringify(e).toLowerCase()
+    if (stringifiedError.includes('network')) {
       message = 'Internet unavailable. Please reconnect.'
     }
-
     throw new Error(message)
   }
 }

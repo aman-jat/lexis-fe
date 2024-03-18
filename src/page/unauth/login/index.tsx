@@ -14,7 +14,7 @@ const Login = () => {
   const navigation = useNavigation()
 
   const formik = useFormik({
-    initialValues: { email: 'aman@gmail.com', password: '1234' },
+    initialValues: { email: '', password: '' },
     validationSchema: yup.object().shape({
       email: yup.string().email('Invalid email format').required('Email is required'),
       password: yup.string().trim().min(4)
@@ -25,7 +25,7 @@ const Login = () => {
         await auth.login({ email, password })
         // navigation.navigate('')
       } catch (e) {
-        showSnackbar(e?.[0] ?? e.message ?? 'Invalid error')
+        showSnackbar(e.message)
       } finally {
         setLoading(false)
       }
